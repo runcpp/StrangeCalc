@@ -81,9 +81,120 @@ std::ostream& operator<<(std::ostream& os, const Equation& eq)
     return os;
 }
 
+class DecimalFraction
+{
+private:
+    long long numerator;
+    long long denominator;
+    [[nodiscard]] long long LCM(const DecimalFraction& rhs) const;
+    [[nodiscard]] long long GCD(const DecimalFraction& rhs) const;
+    long long fractionGCD() const;
+
+public:
+    DecimalFraction(long long numerator, long long denominator);
+    DecimalFraction operator + (const DecimalFraction& rhs) const;
+    DecimalFraction operator + (long long rhs) const;
+    friend std::ostream& operator << (std::ostream& os, const DecimalFraction& fraction);
+    friend DecimalFraction operator + (long long lhs, DecimalFraction& rhs);
+    friend DecimalFraction operator + (long long lhs, DecimalFraction&& rhs);
+
+    void recduce();
+};
+
+DecimalFraction::DecimalFraction(long long numerator, long long denominator):
+        numerator(numerator),denominator(denominator)
+{}
+
+DecimalFraction DecimalFraction::operator+(const DecimalFraction &rhs) const
+{
+    //Common denominator
+    long long lcm = LCM(rhs);
+    long long lhsDenominator = denominator;
+    long long rhsDenominator = rhs.denominator;
+
+    long long lhsNumerator = numerator * lcm / lhsDenominator;
+    long long rhsNumerator = rhs.numerator * lcm / rhsDenominator;
+
+
+    DecimalFraction value(lhsNumerator + rhsNumerator, lcm);
+    value.recduce();
+
+    return value;
+}
+
+DecimalFraction DecimalFraction::operator+(const long long rhs) const
+{
+    return *this + DecimalFraction(rhs, 1);
+}
+
+std::ostream& operator<<(std::ostream& os, const DecimalFraction& fraction)
+{
+    os << fraction.numerator << "/" << fraction.denominator;
+
+    return os;
+}
+
+long long DecimalFraction::LCM(const DecimalFraction &rhs) const {
+    return this->denominator*rhs.denominator/GCD(rhs);
+}
+
+long long DecimalFraction::GCD(const DecimalFraction &rhs) const {
+    long long a = denominator;
+    long long b = rhs.denominator;
+
+    while(a != b)
+    {
+        if (a < b)
+        {
+            b -= a;
+        }
+        else
+        {
+            a -= b;
+        }
+    }
+
+    return a;
+}
+
+void DecimalFraction::recduce()
+{
+    long long gcd = fractionGCD();
+    denominator /= gcd;
+    numerator /= gcd;
+}
+
+long long DecimalFraction::fractionGCD() const {
+    long long a = denominator;
+    long long b = numerator;
+
+    while (a != b)
+    {
+        if (a < b)
+        {
+            b -= a;
+        }
+        else
+        {
+            a -= b;
+        }
+    }
+
+    return a;
+}
+
+DecimalFraction operator+(long long lhs, DecimalFraction &rhs) {
+    return rhs + lhs;
+}
+
+DecimalFraction operator+(long long lhs, DecimalFraction &&rhs) {
+    return rhs + lhs;
+}
+
 int main()
 {
-    Equation eq(Constant("RAND", 5.1));
-    std::cout << eq << std::endl;
+    std::cout << 1 + DecimalFraction(1, 3) << std::endl;
+    std::cout << DecimalFraction(1, 3) + DecimalFraction(1, 6) << std::endl;
+    std::cout << DecimalFraction(15, 4) + DecimalFraction(2, 14) << std::endl;
     return 0;
 }
